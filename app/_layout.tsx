@@ -1,4 +1,4 @@
-import { DrawerContent } from "@/components/DrawerContent";
+import { DrawerContent } from "@/components/navigation";
 import "@/global.css";
 import { useAlertStore, useUnviewedAlertCount, useAlertStoreHydrated } from "@/lib/stores/alertStore";
 import { usePriceStore, usePriceStoreHydrated } from "@/lib/stores/priceStore";

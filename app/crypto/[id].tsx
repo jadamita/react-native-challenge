@@ -1,6 +1,6 @@
-import { AlertForm } from "@/components/AlertForm";
-import { ErrorBanner, StaleDataBanner } from "@/components/ErrorBanner";
-import { PriceChart } from "@/components/PriceChart";
+import { AlertForm } from "@/components/alerts";
+import { ErrorBanner, StaleDataBanner } from "@/components/common";
+import { PriceChart } from "@/components/chart";
 import { formatPercentChange, formatPrice } from "@/lib/api/coingecko";
 import { getCryptoById } from "@/lib/constants/cryptos";
 import { useAlertForCrypto } from "@/lib/stores/alertStore";
