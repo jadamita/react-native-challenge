@@ -76,7 +76,7 @@ export function hasApiKey(): boolean {
  */
 export async function fetchPrices(): Promise<ApiResult<PriceData[]>> {
   try {
-    const url = `${BASE_URL}/simple/price?ids=${CRYPTO_IDS_PARAM}&vs_currencies=usd&include_24hr_change=true`;
+    const url = `${BASE_URL}/simple/price?ids=${CRYPTO_IDS_PARAM}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
 
     const response = await fetchWithTimeout(url);
 
@@ -94,6 +94,7 @@ export async function fetchPrices(): Promise<ApiResult<PriceData[]>> {
       cryptoId: id,
       price: priceInfo.usd,
       priceChange24h: priceInfo.usd_24h_change ?? 0,
+      marketCap: priceInfo.usd_market_cap ?? 0,
       lastUpdated: now,
     }));
 
@@ -162,7 +163,7 @@ export async function fetchSinglePrice(
   cryptoId: string
 ): Promise<ApiResult<PriceData>> {
   try {
-    const url = `${BASE_URL}/simple/price?ids=${cryptoId}&vs_currencies=usd&include_24hr_change=true`;
+    const url = `${BASE_URL}/simple/price?ids=${cryptoId}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
 
     const response = await fetchWithTimeout(url);
 
@@ -183,6 +184,7 @@ export async function fetchSinglePrice(
       cryptoId,
       price: data[cryptoId].usd,
       priceChange24h: data[cryptoId].usd_24h_change ?? 0,
+      marketCap: data[cryptoId].usd_market_cap ?? 0,
       lastUpdated: Date.now(),
     };
 

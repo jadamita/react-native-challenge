@@ -15,6 +15,7 @@ export interface PriceData {
   cryptoId: string;
   price: number; // Current USD price
   priceChange24h: number; // 24h percentage change
+  marketCap: number; // Market cap in USD
   lastUpdated: number; // Unix timestamp (ms)
 }
 
@@ -75,6 +76,7 @@ export interface CoinGeckoSimplePriceResponse {
   [coinId: string]: {
     usd: number;
     usd_24h_change: number;
+    usd_market_cap: number;
   };
 }
 
