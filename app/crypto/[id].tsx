@@ -4,7 +4,7 @@ import { PriceChart } from "@/components/chart";
 import { formatPercentChange, formatPrice } from "@/lib/api/coingecko";
 import { getCryptoById } from "@/lib/constants/cryptos";
 import { useAlertForCrypto } from "@/lib/stores/alertStore";
-import { usePriceStore, useIsDataStale } from "@/lib/stores/priceStore";
+import { usePriceDataStore, useIsDataStale } from "@/lib/stores/priceStore";
 import { useLocalSearchParams } from "expo-router";
 import { useState, useCallback } from "react";
 import {
@@ -23,10 +23,10 @@ export default function CryptoDetailScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Price data (polling handled at app level)
-  const prices = usePriceStore((state) => state.prices);
-  const error = usePriceStore((state) => state.error);
-  const lastFetchTime = usePriceStore((state) => state.lastFetchTime);
-  const refreshPrices = usePriceStore((state) => state.refreshPrices);
+  const prices = usePriceDataStore((state) => state.prices);
+  const error = usePriceDataStore((state) => state.error);
+  const lastFetchTime = usePriceDataStore((state) => state.lastFetchTime);
+  const refreshPrices = usePriceDataStore((state) => state.refreshPrices);
   const priceData = id ? prices[id] : undefined;
   const isDataStale = useIsDataStale();
 

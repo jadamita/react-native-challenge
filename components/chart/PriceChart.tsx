@@ -10,7 +10,7 @@ import Animated, {
   withSpring,
   runOnJS,
 } from "react-native-reanimated";
-import { usePriceStore } from "@/lib/stores/priceStore";
+import { useChartStore } from "@/lib/stores/priceStore";
 import { useSettingsStore } from "@/lib/stores/settingsStore";
 import { formatPrice, formatVolume, getErrorMessage, isRetryableError } from "@/lib/api/coingecko";
 import type { ChartTimeframe, ChartDataPoint, VolumeDataPoint, ApiError } from "@/lib/types";
@@ -199,7 +199,7 @@ export function PriceChart({ cryptoId, color = "#3b82f6" }: PriceChartProps) {
   const [error, setError] = useState<ApiError | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  const getChartData = usePriceStore((state) => state.getChartData);
+  const getChartData = useChartStore((state) => state.getChartData);
   const showVolumeChart = useSettingsStore((state) => state.showVolumeChart);
 
   // Load chart data

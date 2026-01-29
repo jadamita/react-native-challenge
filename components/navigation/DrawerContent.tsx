@@ -3,7 +3,7 @@ import { DrawerContentScrollView } from "@react-navigation/drawer";
 import { useRouter, usePathname } from "expo-router";
 import { useMemo } from "react";
 import { CRYPTOS } from "@/lib/constants/cryptos";
-import { usePriceStore } from "@/lib/stores/priceStore";
+import { usePriceDataStore } from "@/lib/stores/priceStore";
 import { useAlertStore } from "@/lib/stores/alertStore";
 import { formatPrice, formatPercentChange } from "@/lib/api/coingecko";
 import { LoadingSkeleton } from "@/components/common";
@@ -11,10 +11,10 @@ import { LoadingSkeleton } from "@/components/common";
 export function DrawerContent(props: any) {
   const router = useRouter();
   const pathname = usePathname();
-  const prices = usePriceStore((state) => state.prices);
-  const isLoading = usePriceStore((state) => state.isLoading);
-  const error = usePriceStore((state) => state.error);
-  const consecutiveFailures = usePriceStore((state) => state.consecutiveFailures);
+  const prices = usePriceDataStore((state) => state.prices);
+  const isLoading = usePriceDataStore((state) => state.isLoading);
+  const error = usePriceDataStore((state) => state.error);
+  const consecutiveFailures = usePriceDataStore((state) => state.consecutiveFailures);
   const activeAlerts = useAlertStore((state) => state.activeAlerts);
 
   const hasPrices = Object.keys(prices).length > 0;

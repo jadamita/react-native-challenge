@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { usePriceStore } from "@/lib/stores/priceStore";
+import { usePriceDataStore } from "@/lib/stores/priceStore";
 import type { ConnectionStatus } from "@/lib/types";
 
 /**
@@ -10,10 +9,10 @@ import type { ConnectionStatus } from "@/lib/types";
  * 3. Works seamlessly with our existing error handling
  */
 export function useNetworkStatus(): ConnectionStatus {
-  const error = usePriceStore((state) => state.error);
-  const consecutiveFailures = usePriceStore((state) => state.consecutiveFailures);
-  const isLoading = usePriceStore((state) => state.isLoading);
-  const lastFetchTime = usePriceStore((state) => state.lastFetchTime);
+  const error = usePriceDataStore((state) => state.error);
+  const consecutiveFailures = usePriceDataStore((state) => state.consecutiveFailures);
+  const isLoading = usePriceDataStore((state) => state.isLoading);
+  const lastFetchTime = usePriceDataStore((state) => state.lastFetchTime);
 
   // Determine connection status
   if (isLoading && !lastFetchTime) {
@@ -42,8 +41,8 @@ export function useIsOnline(): boolean {
  * Hook that returns true when initially connecting (no data yet)
  */
 export function useIsInitialLoading(): boolean {
-  const isLoading = usePriceStore((state) => state.isLoading);
-  const lastFetchTime = usePriceStore((state) => state.lastFetchTime);
+  const isLoading = usePriceDataStore((state) => state.isLoading);
+  const lastFetchTime = usePriceDataStore((state) => state.lastFetchTime);
 
   return isLoading && !lastFetchTime;
 }

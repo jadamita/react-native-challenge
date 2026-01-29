@@ -10,8 +10,8 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
-import { useAlertStore } from "@/lib/stores/alertStore";
-import { usePriceStore } from "@/lib/stores/priceStore";
+import { useAlertStore, useAlertForCrypto } from "@/lib/stores/alertStore";
+import { usePriceDataStore } from "@/lib/stores/priceStore";
 import { formatPrice } from "@/lib/api/coingecko";
 import type { Crypto } from "@/lib/types";
 import type { TextInput as TextInputType } from "react-native";
@@ -28,12 +28,12 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<TextInputType>(null);
 
-  const { addAlert, removeAlert, getAlertForCrypto } = useAlertStore();
-  const prices = usePriceStore((state) => state.prices);
+  const { addAlert, removeAlert } = useAlertStore();
+  const prices = usePriceDataStore((state) => state.prices);
   const currentPrice = prices[crypto.id]?.price;
 
-  // Get existing alert for this crypto
-  const existingAlert = getAlertForCrypto(crypto.id);
+  // Get existing alert for this crypto (reactive)
+  const existingAlert = useAlertForCrypto(crypto.id);
 
   // Pre-fill form if alert exists
   useEffect(() => {

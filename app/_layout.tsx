@@ -1,7 +1,7 @@
 import { DrawerContent } from "@/components/navigation";
 import "@/global.css";
 import { useAlertStore, useUnviewedAlertCount, useAlertStoreHydrated } from "@/lib/stores/alertStore";
-import { usePriceStore, usePriceStoreHydrated } from "@/lib/stores/priceStore";
+import { usePriceDataStore, usePollingStore, usePriceStoreHydrated } from "@/lib/stores/priceStore";
 import { useSettingsStore, useSettingsHydrated } from "@/lib/stores/settingsStore";
 import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
 import {
@@ -76,9 +76,9 @@ function HydrationLoadingScreen() {
 
 export default function RootLayout() {
   const router = useRouter();
-  const startPolling = usePriceStore((state) => state.startPolling);
-  const stopPolling = usePriceStore((state) => state.stopPolling);
-  const prices = usePriceStore((state) => state.prices);
+  const startPolling = usePollingStore((state) => state.startPolling);
+  const stopPolling = usePollingStore((state) => state.stopPolling);
+  const prices = usePriceDataStore((state) => state.prices);
   const evaluateAlerts = useAlertStore((state) => state.evaluateAlerts);
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
   const notificationResponseRef = useRef<ReturnType<typeof addNotificationResponseListener> | null>(null);
