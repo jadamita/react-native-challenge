@@ -6,12 +6,19 @@ import { CRYPTOS } from "@/lib/constants/cryptos";
 import { usePriceStore } from "@/lib/stores/priceStore";
 import { useAlertStore } from "@/lib/stores/alertStore";
 import { formatPrice, formatPercentChange } from "@/lib/api/coingecko";
+import { LoadingSkeleton } from "@/components/ErrorBanner";
 
 export function DrawerContent(props: any) {
   const router = useRouter();
   const pathname = usePathname();
   const prices = usePriceStore((state) => state.prices);
+  const isLoading = usePriceStore((state) => state.isLoading);
+  const error = usePriceStore((state) => state.error);
+  const consecutiveFailures = usePriceStore((state) => state.consecutiveFailures);
   const activeAlerts = useAlertStore((state) => state.activeAlerts);
+
+  const hasPrices = Object.keys(prices).length > 0;
+  const showLoadingSkeletons = isLoading && !hasPrices;
 
   // Sort cryptos by market cap (highest first)
   const sortedCryptos = useMemo(() => {
@@ -28,6 +35,16 @@ export function DrawerContent(props: any) {
         <Text className="text-white text-xl font-bold">Stonkr</Text>
         <Text className="text-slate-400 text-sm">Sorted by Market Cap</Text>
       </View>
+
+      {/* Connection error indicator */}
+      {consecutiveFailures >= 2 && error && (
+        <View className="mx-4 mb-3 bg-crypto-red/20 rounded-lg px-3 py-2 flex-row items-center">
+          <Text className="mr-2">📡</Text>
+          <Text className="text-crypto-red text-xs flex-1">
+            Connection issues. Retrying...
+          </Text>
+        </View>
+      )}
 
       {/* Crypto list - sorted by market cap */}
       {sortedCryptos.map((crypto, index) => {
@@ -73,7 +90,12 @@ export function DrawerContent(props: any) {
 
             {/* Price */}
             <View className="items-end">
-              {priceData ? (
+              {showLoadingSkeletons ? (
+                <View className="gap-1">
+                  <LoadingSkeleton width={60} height={14} />
+                  <LoadingSkeleton width={40} height={12} />
+                </View>
+              ) : priceData ? (
                 <>
                   <Text className="text-white font-medium text-sm">
                     {formatPrice(priceData.price)}

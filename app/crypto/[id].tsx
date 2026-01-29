@@ -1,14 +1,16 @@
 import { AlertForm } from "@/components/AlertForm";
+import { ErrorBanner, StaleDataBanner } from "@/components/ErrorBanner";
 import { PriceChart } from "@/components/PriceChart";
 import { formatPercentChange, formatPrice } from "@/lib/api/coingecko";
 import { getCryptoById } from "@/lib/constants/cryptos";
 import { useAlertForCrypto } from "@/lib/stores/alertStore";
-import { usePriceStore } from "@/lib/stores/priceStore";
+import { usePriceStore, useIsDataStale } from "@/lib/stores/priceStore";
 import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -18,13 +20,25 @@ export default function CryptoDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const crypto = getCryptoById(id);
   const [showAlertForm, setShowAlertForm] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Price data (polling handled at app level)
   const prices = usePriceStore((state) => state.prices);
+  const error = usePriceStore((state) => state.error);
+  const lastFetchTime = usePriceStore((state) => state.lastFetchTime);
+  const refreshPrices = usePriceStore((state) => state.refreshPrices);
   const priceData = id ? prices[id] : undefined;
+  const isDataStale = useIsDataStale();
 
   // Alert data
   const alert = useAlertForCrypto(id || "");
+
+  // Pull-to-refresh handler
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refreshPrices();
+    setIsRefreshing(false);
+  }, [refreshPrices]);
 
   if (!crypto) {
     return (
@@ -41,8 +55,39 @@ export default function CryptoDetailScreen() {
 
   return (
     <>
-      <ScrollView className="flex-1 bg-slate-900">
+      <ScrollView
+        className="flex-1 bg-slate-900"
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor="#3b82f6"
+            colors={["#3b82f6"]}
+          />
+        }
+      >
         <View className="p-4">
+          {/* Error banner */}
+          {error && !priceData && (
+            <View className="mb-4">
+              <ErrorBanner
+                error={error}
+                onRetry={handleRefresh}
+                isRetrying={isRefreshing}
+              />
+            </View>
+          )}
+
+          {/* Stale data warning */}
+          {isDataStale && lastFetchTime && priceData && (
+            <View className="mb-4">
+              <StaleDataBanner
+                lastUpdated={lastFetchTime}
+                onRefresh={handleRefresh}
+              />
+            </View>
+          )}
+
           {/* Header */}
           <View className="flex-row items-center mb-6">
             <View

@@ -1,10 +1,14 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Alert, TriggeredAlert, PriceData } from "@/lib/types";
+import { sendAlertNotification } from "@/lib/services/notifications";
 
 interface AlertStore {
   // State
   activeAlerts: Alert[];
   triggeredAlerts: TriggeredAlert[];
+  _hasHydrated: boolean;
 
   // Computed
   unviewedCount: number;
@@ -21,6 +25,9 @@ interface AlertStore {
   // Triggered alerts management
   markAllAsViewed: () => void;
   clearTriggeredAlerts: () => void;
+
+  // Hydration
+  setHasHydrated: (state: boolean) => void;
 }
 
 /**
@@ -30,15 +37,23 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-export const useAlertStore = create<AlertStore>((set, get) => ({
-  // Initial state
-  activeAlerts: [],
-  triggeredAlerts: [],
+export const useAlertStore = create<AlertStore>()(
+  persist(
+    (set, get) => ({
+      // Initial state
+      activeAlerts: [],
+      triggeredAlerts: [],
+      _hasHydrated: false,
 
-  // Computed - unviewed count
-  get unviewedCount() {
-    return get().triggeredAlerts.filter((t) => !t.viewed).length;
-  },
+      // Computed - unviewed count
+      get unviewedCount() {
+        return get().triggeredAlerts.filter((t) => !t.viewed).length;
+      },
+
+      // Set hydration state
+      setHasHydrated: (state) => {
+        set({ _hasHydrated: state });
+      },
 
   // Add a new alert
   addAlert: (alertData) => {
@@ -109,6 +124,11 @@ export const useAlertStore = create<AlertStore>((set, get) => ({
           triggeredAt: Date.now(),
           viewed: false,
         });
+
+        // Send push notification
+        sendAlertNotification(alert, currentPrice).catch((err) => {
+          console.warn("Failed to send notification:", err);
+        });
       }
     });
 
@@ -134,11 +154,25 @@ export const useAlertStore = create<AlertStore>((set, get) => ({
     }));
   },
 
-  // Clear all triggered alerts (after viewing)
-  clearTriggeredAlerts: () => {
-    set({ triggeredAlerts: [] });
-  },
-}));
+      // Clear all triggered alerts (after viewing)
+      clearTriggeredAlerts: () => {
+        set({ triggeredAlerts: [] });
+      },
+    }),
+    {
+      name: "stonkr-alerts",
+      storage: createJSONStorage(() => AsyncStorage),
+      // Only persist these fields
+      partialize: (state) => ({
+        activeAlerts: state.activeAlerts,
+        triggeredAlerts: state.triggeredAlerts,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+    }
+  )
+);
 
 /**
  * Hook to get unviewed alert count for badge
@@ -156,4 +190,11 @@ export function useAlertForCrypto(cryptoId: string): Alert | undefined {
   return useAlertStore((state) =>
     state.activeAlerts.find((a) => a.cryptoId === cryptoId)
   );
+}
+
+/**
+ * Hook to check if alert store has been hydrated from storage
+ */
+export function useAlertStoreHydrated(): boolean {
+  return useAlertStore((state) => state._hasHydrated);
 }

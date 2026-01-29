@@ -90,8 +90,34 @@ export interface CoinGeckoMarketChartResponse {
 export type ChartTimeframe = "24h" | "7d";
 
 /**
+ * Error categories for better error handling
+ */
+export type ApiErrorType =
+  | "NETWORK" // No internet connection or DNS failure
+  | "TIMEOUT" // Request timed out
+  | "RATE_LIMIT" // 429 - Too many requests
+  | "NOT_FOUND" // 404 - Resource not found
+  | "SERVER_ERROR" // 5xx errors
+  | "PARSE_ERROR" // JSON parsing failed
+  | "UNKNOWN"; // Catch-all for unexpected errors
+
+/**
+ * Structured API error with type and message
+ */
+export interface ApiError {
+  type: ApiErrorType;
+  message: string;
+  retryable: boolean;
+}
+
+/**
  * API fetch result with error handling
  */
 export type ApiResult<T> =
   | { success: true; data: T }
-  | { success: false; error: string };
+  | { success: false; error: ApiError };
+
+/**
+ * Connection status for network monitoring
+ */
+export type ConnectionStatus = "online" | "offline" | "checking";

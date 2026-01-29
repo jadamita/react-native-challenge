@@ -50,19 +50,67 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
     Keyboard.dismiss();
   };
 
+  // Sanitize threshold input - only allow valid decimal numbers
+  const handleThresholdChange = (text: string) => {
+    // Remove any characters that aren't digits or decimal point
+    let sanitized = text.replace(/[^\d.]/g, "");
+
+    // Ensure only one decimal point
+    const parts = sanitized.split(".");
+    if (parts.length > 2) {
+      sanitized = parts[0] + "." + parts.slice(1).join("");
+    }
+
+    // Limit decimal places to 8
+    if (parts.length === 2 && parts[1].length > 8) {
+      sanitized = parts[0] + "." + parts[1].slice(0, 8);
+    }
+
+    // Limit total length to prevent overflow
+    if (sanitized.length > 20) {
+      sanitized = sanitized.slice(0, 20);
+    }
+
+    setThreshold(sanitized);
+    setError(null); // Clear error when user types
+  };
+
   const handleSave = () => {
     dismissKeyboard();
     setError(null);
 
+    // Clean input - remove any non-numeric characters except decimal point
+    const cleanedThreshold = threshold.replace(/[^\d.]/g, "");
+
     // Validate threshold
-    const numThreshold = parseFloat(threshold);
-    if (isNaN(numThreshold) || numThreshold <= 0) {
-      setError("Please enter a valid price");
+    const numThreshold = parseFloat(cleanedThreshold);
+    if (isNaN(numThreshold) || !isFinite(numThreshold)) {
+      setError("Please enter a valid number");
       return;
     }
 
-    // Validate threshold makes sense
+    if (numThreshold <= 0) {
+      setError("Price must be greater than zero");
+      return;
+    }
+
+    // Prevent extremely large values (over 100 trillion)
+    if (numThreshold > 100_000_000_000_000) {
+      setError("Price value is too large");
+      return;
+    }
+
+    // Prevent tiny values that are effectively zero (less than 0.00000001)
+    if (numThreshold < 0.00000001) {
+      setError("Price value is too small");
+      return;
+    }
+
+    // Validate threshold makes sense relative to current price
     if (currentPrice) {
+      // Calculate percentage difference from current price
+      const percentDiff = Math.abs((numThreshold - currentPrice) / currentPrice) * 100;
+
       if (alertType === "above" && numThreshold <= currentPrice) {
         setError(`Price must be above current (${formatPrice(currentPrice)})`);
         return;
@@ -71,13 +119,28 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
         setError(`Price must be below current (${formatPrice(currentPrice)})`);
         return;
       }
+
+      // Warn if alert is unrealistically far from current price (over 1000%)
+      if (percentDiff > 1000) {
+        setError("Alert is very far from current price. Are you sure?");
+        // Allow saving on second attempt by checking if same error was shown
+        if (!existingAlert && threshold === cleanedThreshold) {
+          // User confirmed by pressing save again, allow it
+        } else {
+          setThreshold(cleanedThreshold);
+          return;
+        }
+      }
     }
+
+    // Round to reasonable precision (max 8 decimal places)
+    const roundedThreshold = Math.round(numThreshold * 100000000) / 100000000;
 
     // Add or update alert
     addAlert({
       cryptoId: crypto.id,
       type: alertType,
-      threshold: numThreshold,
+      threshold: roundedThreshold,
     });
 
     onClose();
@@ -131,14 +194,16 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
                 </View>
 
                 {/* Current price */}
-                {currentPrice && (
-                  <View className="bg-slate-700/50 rounded-xl p-3 mb-4">
-                    <Text className="text-slate-400 text-sm">Current Price</Text>
+                <View className="bg-slate-700/50 rounded-xl p-3 mb-4">
+                  <Text className="text-slate-400 text-sm">Current Price</Text>
+                  {currentPrice ? (
                     <Text className="text-white font-bold text-lg">
                       {formatPrice(currentPrice)}
                     </Text>
-                  </View>
-                )}
+                  ) : (
+                    <Text className="text-slate-500 text-lg">Loading...</Text>
+                  )}
+                </View>
 
                 {/* Alert type selector */}
                 <Text className="text-slate-400 text-sm mb-2">
@@ -190,12 +255,13 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
                   <TextInput
                     ref={inputRef}
                     value={threshold}
-                    onChangeText={setThreshold}
+                    onChangeText={handleThresholdChange}
                     keyboardType="decimal-pad"
                     returnKeyType="done"
                     onSubmitEditing={dismissKeyboard}
                     placeholder="0.00"
                     placeholderTextColor="#64748b"
+                    maxLength={20}
                     className="flex-1 text-white text-xl p-4"
                   />
                 </View>
