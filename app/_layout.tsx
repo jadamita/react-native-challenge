@@ -1,8 +1,8 @@
 import { DrawerContent } from "@/components/DrawerContent";
 import "@/global.css";
-import { useAlertStore, useUnviewedAlertCount } from "@/lib/stores/alertStore";
-import { usePriceStore } from "@/lib/stores/priceStore";
-import { useSettingsStore } from "@/lib/stores/settingsStore";
+import { useAlertStore, useUnviewedAlertCount, useAlertStoreHydrated } from "@/lib/stores/alertStore";
+import { usePriceStore, usePriceStoreHydrated } from "@/lib/stores/priceStore";
+import { useSettingsStore, useSettingsHydrated } from "@/lib/stores/settingsStore";
 import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
 import {
   requestNotificationPermissions,
@@ -12,7 +12,7 @@ import {
 import { Drawer } from "expo-router/drawer";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
-import { View, Text, Pressable, Appearance } from "react-native";
+import { View, Text, Pressable, Appearance, ActivityIndicator } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
@@ -64,6 +64,16 @@ function ThemeSync() {
   return null;
 }
 
+// Loading screen shown while stores are hydrating
+function HydrationLoadingScreen() {
+  return (
+    <View className="flex-1 bg-slate-900 items-center justify-center">
+      <ActivityIndicator size="large" color="#16c784" />
+      <Text className="text-white mt-4 text-lg">Loading...</Text>
+    </View>
+  );
+}
+
 export default function RootLayout() {
   const router = useRouter();
   const startPolling = usePriceStore((state) => state.startPolling);
@@ -72,6 +82,12 @@ export default function RootLayout() {
   const evaluateAlerts = useAlertStore((state) => state.evaluateAlerts);
   const isDarkMode = useSettingsStore((state) => state.isDarkMode);
   const notificationResponseRef = useRef<ReturnType<typeof addNotificationResponseListener> | null>(null);
+
+  // Check hydration status for all stores
+  const alertStoreHydrated = useAlertStoreHydrated();
+  const priceStoreHydrated = usePriceStoreHydrated();
+  const settingsHydrated = useSettingsHydrated();
+  const isHydrated = alertStoreHydrated && priceStoreHydrated && settingsHydrated;
 
   // Set initial color scheme
   useEffect(() => {
@@ -119,6 +135,15 @@ export default function RootLayout() {
   const headerBgColor = isDarkMode ? "#0f172a" : "#f8fafc";
   const headerTintColor = isDarkMode ? "#fff" : "#0f172a";
   const drawerBgColor = isDarkMode ? "#0f172a" : "#f8fafc";
+
+  // Show loading screen while stores are hydrating
+  if (!isHydrated) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <HydrationLoadingScreen />
+      </GestureHandlerRootView>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
