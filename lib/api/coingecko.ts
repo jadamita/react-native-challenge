@@ -4,6 +4,8 @@ import type {
   ApiErrorType,
   PriceData,
   ChartDataPoint,
+  VolumeDataPoint,
+  ChartResult,
   ChartTimeframe,
   CoinGeckoSimplePriceResponse,
   CoinGeckoMarketChartResponse,
@@ -260,16 +262,38 @@ export async function fetchPrices(): Promise<ApiResult<PriceData[]>> {
 }
 
 /**
- * Fetch historical chart data for a specific cryptocurrency
- * @param cryptoId - CoinGecko crypto ID (e.g., "bitcoin")
- * @param timeframe - "24h" or "7d"
+ * Convert timeframe to days parameter for CoinGecko API
  */
-export async function fetchChartData(
+function timeframeToDays(timeframe: ChartTimeframe): string {
+  switch (timeframe) {
+    case "1h":
+      return "1"; // API returns hourly data for 1 day, we'll filter to 1h
+    case "24h":
+      return "1";
+    case "7d":
+      return "7";
+    case "30d":
+      return "30";
+    case "90d":
+      return "90";
+    case "1y":
+      return "365";
+    default:
+      return "1";
+  }
+}
+
+/**
+ * Fetch historical chart data with volume for a specific cryptocurrency
+ * @param cryptoId - CoinGecko crypto ID (e.g., "bitcoin")
+ * @param timeframe - Chart timeframe
+ */
+export async function fetchChartDataWithVolume(
   cryptoId: string,
   timeframe: ChartTimeframe = "24h"
-): Promise<ApiResult<ChartDataPoint[]>> {
+): Promise<ApiResult<ChartResult>> {
   try {
-    const days = timeframe === "24h" ? 1 : 7;
+    const days = timeframeToDays(timeframe);
     const url = `${BASE_URL}/coins/${cryptoId}/market_chart?vs_currency=usd&days=${days}`;
 
     const response = await fetchWithRetry(url);
@@ -294,8 +318,18 @@ export async function fetchChartData(
       };
     }
 
-    // Transform and validate [timestamp, price][] to ChartDataPoint[]
-    const chartData: ChartDataPoint[] = data.prices
+    // For 1h timeframe, filter to last hour of data
+    let pricesData = data.prices;
+    let volumesData = data.total_volumes || [];
+
+    if (timeframe === "1h") {
+      const oneHourAgo = Date.now() - 60 * 60 * 1000;
+      pricesData = pricesData.filter(([timestamp]) => timestamp >= oneHourAgo);
+      volumesData = volumesData.filter(([timestamp]) => timestamp >= oneHourAgo);
+    }
+
+    // Transform and validate prices
+    const prices: ChartDataPoint[] = pricesData
       .filter(
         ([timestamp, value]) =>
           typeof timestamp === "number" &&
@@ -309,17 +343,48 @@ export async function fetchChartData(
         value,
       }));
 
-    if (chartData.length === 0) {
+    // Transform and validate volumes
+    const volumes: VolumeDataPoint[] = volumesData
+      .filter(
+        ([timestamp, value]) =>
+          typeof timestamp === "number" &&
+          typeof value === "number" &&
+          isFinite(value) &&
+          !isNaN(value) &&
+          value >= 0
+      )
+      .map(([timestamp, value]) => ({
+        timestamp,
+        value,
+      }));
+
+    if (prices.length === 0) {
       return {
         success: false,
         error: createApiError("PARSE_ERROR", "No valid chart data available.", true),
       };
     }
 
-    return { success: true, data: chartData };
+    return { success: true, data: { prices, volumes } };
   } catch (error) {
     return { success: false, error: parseError(error) };
   }
+}
+
+/**
+ * Fetch historical chart data for a specific cryptocurrency (legacy, prices only)
+ * @param cryptoId - CoinGecko crypto ID (e.g., "bitcoin")
+ * @param timeframe - Chart timeframe
+ */
+export async function fetchChartData(
+  cryptoId: string,
+  timeframe: ChartTimeframe = "24h"
+): Promise<ApiResult<ChartDataPoint[]>> {
+  const result = await fetchChartDataWithVolume(cryptoId, timeframe);
+  if (result.success) {
+    return { success: true, data: result.data.prices };
+  }
+  return result;
 }
 
 /**
@@ -396,6 +461,22 @@ export function formatPrice(price: number): string {
 export function formatPercentChange(change: number): string {
   const sign = change >= 0 ? "+" : "";
   return `${sign}${change.toFixed(2)}%`;
+}
+
+/**
+ * Format volume for display (compact notation)
+ */
+export function formatVolume(volume: number): string {
+  if (volume >= 1_000_000_000) {
+    return `$${(volume / 1_000_000_000).toFixed(1)}B`;
+  }
+  if (volume >= 1_000_000) {
+    return `$${(volume / 1_000_000).toFixed(1)}M`;
+  }
+  if (volume >= 1_000) {
+    return `$${(volume / 1_000).toFixed(1)}K`;
+  }
+  return `$${volume.toFixed(0)}`;
 }
 
 /**

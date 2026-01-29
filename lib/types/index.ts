@@ -82,12 +82,29 @@ export interface CoinGeckoSimplePriceResponse {
 
 export interface CoinGeckoMarketChartResponse {
   prices: [number, number][]; // [timestamp, price][]
+  total_volumes: [number, number][]; // [timestamp, volume][]
+}
+
+/**
+ * Volume data point for volume bars
+ */
+export interface VolumeDataPoint {
+  timestamp: number; // Unix timestamp (ms)
+  value: number; // Volume in USD
+}
+
+/**
+ * Combined chart data with prices and volumes
+ */
+export interface ChartResult {
+  prices: ChartDataPoint[];
+  volumes: VolumeDataPoint[];
 }
 
 /**
  * Chart timeframe options
  */
-export type ChartTimeframe = "24h" | "7d";
+export type ChartTimeframe = "1h" | "24h" | "7d" | "30d" | "90d" | "1y";
 
 /**
  * Error categories for better error handling

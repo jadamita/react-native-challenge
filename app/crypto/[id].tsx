@@ -42,8 +42,8 @@ export default function CryptoDetailScreen() {
 
   if (!crypto) {
     return (
-      <View className="flex-1 bg-slate-900 items-center justify-center">
-        <Text className="text-white text-lg">Crypto not found</Text>
+      <View className="flex-1 bg-slate-100 dark:bg-slate-900 items-center justify-center">
+        <Text className="text-slate-900 dark:text-white text-lg">Crypto not found</Text>
       </View>
     );
   }
@@ -56,7 +56,7 @@ export default function CryptoDetailScreen() {
   return (
     <>
       <ScrollView
-        className="flex-1 bg-slate-900"
+        className="flex-1 bg-slate-100 dark:bg-slate-900"
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -99,21 +99,21 @@ export default function CryptoDetailScreen() {
               </Text>
             </View>
             <View className="flex-1">
-              <Text className="text-white font-bold text-2xl">
+              <Text className="text-slate-900 dark:text-white font-bold text-2xl">
                 {crypto.name}
               </Text>
-              <Text className="text-slate-400 text-lg">{crypto.symbol}</Text>
+              <Text className="text-slate-500 dark:text-slate-400 text-lg">{crypto.symbol}</Text>
             </View>
           </View>
 
           {/* Current price */}
-          <View className="bg-slate-800 rounded-xl p-4 mb-4">
+          <View className="bg-white dark:bg-slate-800 rounded-xl p-4 mb-4">
             {priceData ? (
               <>
-                <Text className="text-slate-400 text-sm mb-1">
+                <Text className="text-slate-500 dark:text-slate-400 text-sm mb-1">
                   Current Price
                 </Text>
-                <Text className="text-white font-bold text-3xl mb-1">
+                <Text className="text-slate-900 dark:text-white font-bold text-3xl mb-1">
                   {formatPrice(priceData.price)}
                 </Text>
                 <Text className={`font-semibold text-lg ${changeColor}`}>
@@ -123,7 +123,7 @@ export default function CryptoDetailScreen() {
             ) : (
               <View className="items-center py-4">
                 <ActivityIndicator size="large" color={crypto.color} />
-                <Text className="text-slate-400 mt-2">Loading price...</Text>
+                <Text className="text-slate-500 dark:text-slate-400 mt-2">Loading price...</Text>
               </View>
             )}
           </View>
@@ -138,24 +138,24 @@ export default function CryptoDetailScreen() {
             onPress={() => setShowAlertForm(true)}
             className={`rounded-xl p-4 mb-4 ${
               alert
-                ? "bg-purple-900/30 border border-purple-500"
-                : "bg-slate-800 active:bg-slate-700"
+                ? "bg-purple-100 dark:bg-purple-900/30 border border-purple-500"
+                : "bg-white dark:bg-slate-800 active:bg-slate-100 dark:active:bg-slate-700"
             }`}
           >
             {alert ? (
               <View className="flex-row items-center justify-between">
                 <View>
-                  <Text className="text-purple-300 font-semibold mb-1">
+                  <Text className="text-purple-700 dark:text-purple-300 font-semibold mb-1">
                     Active Alert
                   </Text>
-                  <Text className="text-white">
+                  <Text className="text-slate-900 dark:text-white">
                     Notify when price goes{" "}
                     <Text className="font-bold">
                       {alert.type === "above" ? "above" : "below"}
                     </Text>{" "}
                     {formatPrice(alert.threshold)}
                   </Text>
-                  <Text className="text-slate-400 text-sm mt-1">
+                  <Text className="text-slate-500 dark:text-slate-400 text-sm mt-1">
                     Tap to edit or remove
                   </Text>
                 </View>
@@ -164,10 +164,10 @@ export default function CryptoDetailScreen() {
             ) : (
               <View className="flex-row items-center justify-between">
                 <View>
-                  <Text className="text-white font-semibold mb-1">
+                  <Text className="text-slate-900 dark:text-white font-semibold mb-1">
                     Set Price Alert
                   </Text>
-                  <Text className="text-slate-400">
+                  <Text className="text-slate-500 dark:text-slate-400">
                     Get notified when {crypto.symbol} reaches your target price
                   </Text>
                 </View>
@@ -178,7 +178,7 @@ export default function CryptoDetailScreen() {
 
           {/* Last updated */}
           {priceData && (
-            <Text className="text-slate-500 text-center mt-4 text-sm">
+            <Text className="text-slate-400 dark:text-slate-500 text-center mt-4 text-sm">
               Last updated:{" "}
               {new Date(priceData.lastUpdated).toLocaleTimeString()}
             </Text>

@@ -55,7 +55,7 @@ export function SetAlertButton({ onPress, hasAlert }: SetAlertButtonProps) {
       <View className="relative">
         <Text className="text-xl">{hasAlert ? "🔔" : "🔕"}</Text>
         {hasAlert && (
-          <View className="absolute -bottom-1 -right-1 w-3 h-3 bg-purple-500 rounded-full border-2 border-slate-900" />
+          <View className="absolute -bottom-1 -right-1 w-3 h-3 bg-purple-500 rounded-full border-2 border-slate-100 dark:border-slate-900" />
         )}
       </View>
     </Pressable>

@@ -174,7 +174,7 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
         <TouchableWithoutFeedback onPress={handleClose}>
           <View className="flex-1 bg-black/70 justify-center items-center p-4">
             <TouchableWithoutFeedback onPress={dismissKeyboard}>
-              <View className="bg-slate-800 rounded-2xl w-full max-w-sm p-6">
+              <View className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6">
                 {/* Header */}
                 <View className="flex-row items-center mb-6">
                   <View
@@ -186,27 +186,27 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
                     </Text>
                   </View>
                   <View>
-                    <Text className="text-white font-bold text-xl">
+                    <Text className="text-slate-900 dark:text-white font-bold text-xl">
                       {existingAlert ? "Edit Alert" : "Set Alert"}
                     </Text>
-                    <Text className="text-slate-400">{crypto.name}</Text>
+                    <Text className="text-slate-500 dark:text-slate-400">{crypto.name}</Text>
                   </View>
                 </View>
 
                 {/* Current price */}
-                <View className="bg-slate-700/50 rounded-xl p-3 mb-4">
-                  <Text className="text-slate-400 text-sm">Current Price</Text>
+                <View className="bg-slate-100 dark:bg-slate-700/50 rounded-xl p-3 mb-4">
+                  <Text className="text-slate-500 dark:text-slate-400 text-sm">Current Price</Text>
                   {currentPrice ? (
-                    <Text className="text-white font-bold text-lg">
+                    <Text className="text-slate-900 dark:text-white font-bold text-lg">
                       {formatPrice(currentPrice)}
                     </Text>
                   ) : (
-                    <Text className="text-slate-500 text-lg">Loading...</Text>
+                    <Text className="text-slate-400 dark:text-slate-500 text-lg">Loading...</Text>
                   )}
                 </View>
 
                 {/* Alert type selector */}
-                <Text className="text-slate-400 text-sm mb-2">
+                <Text className="text-slate-500 dark:text-slate-400 text-sm mb-2">
                   Notify me when price goes
                 </Text>
                 <View className="flex-row gap-3 mb-4">
@@ -216,12 +216,12 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
                       setAlertType("above");
                     }}
                     className={`flex-1 py-3 rounded-xl items-center ${
-                      alertType === "above" ? "bg-crypto-green" : "bg-slate-700"
+                      alertType === "above" ? "bg-crypto-green" : "bg-slate-200 dark:bg-slate-700"
                     }`}
                   >
                     <Text
                       className={`font-semibold ${
-                        alertType === "above" ? "text-white" : "text-slate-400"
+                        alertType === "above" ? "text-white" : "text-slate-500 dark:text-slate-400"
                       }`}
                     >
                       ↑ Above
@@ -233,12 +233,12 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
                       setAlertType("below");
                     }}
                     className={`flex-1 py-3 rounded-xl items-center ${
-                      alertType === "below" ? "bg-crypto-red" : "bg-slate-700"
+                      alertType === "below" ? "bg-crypto-red" : "bg-slate-200 dark:bg-slate-700"
                     }`}
                   >
                     <Text
                       className={`font-semibold ${
-                        alertType === "below" ? "text-white" : "text-slate-400"
+                        alertType === "below" ? "text-white" : "text-slate-500 dark:text-slate-400"
                       }`}
                     >
                       ↓ Below
@@ -247,11 +247,11 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
                 </View>
 
                 {/* Threshold input */}
-                <Text className="text-slate-400 text-sm mb-2">
+                <Text className="text-slate-500 dark:text-slate-400 text-sm mb-2">
                   Target Price (USD)
                 </Text>
-                <View className="flex-row items-center bg-slate-700 rounded-xl mb-4">
-                  <Text className="text-slate-400 text-xl pl-4">$</Text>
+                <View className="flex-row items-center bg-slate-100 dark:bg-slate-700 rounded-xl mb-4">
+                  <Text className="text-slate-500 dark:text-slate-400 text-xl pl-4">$</Text>
                   <TextInput
                     ref={inputRef}
                     value={threshold}
@@ -260,9 +260,9 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
                     returnKeyType="done"
                     onSubmitEditing={dismissKeyboard}
                     placeholder="0.00"
-                    placeholderTextColor="#64748b"
+                    placeholderTextColor="#94a3b8"
                     maxLength={20}
-                    className="flex-1 text-white text-xl p-4"
+                    className="flex-1 text-slate-900 dark:text-white text-xl p-4"
                   />
                 </View>
 
@@ -278,16 +278,16 @@ export function AlertForm({ crypto, visible, onClose }: AlertFormProps) {
                   {existingAlert && (
                     <Pressable
                       onPress={handleDelete}
-                      className="flex-1 py-3 rounded-xl items-center bg-slate-700"
+                      className="flex-1 py-3 rounded-xl items-center bg-slate-200 dark:bg-slate-700"
                     >
                       <Text className="text-crypto-red font-semibold">Delete</Text>
                     </Pressable>
                   )}
                   <Pressable
                     onPress={handleClose}
-                    className="flex-1 py-3 rounded-xl items-center bg-slate-700"
+                    className="flex-1 py-3 rounded-xl items-center bg-slate-200 dark:bg-slate-700"
                   >
-                    <Text className="text-slate-300 font-semibold">Cancel</Text>
+                    <Text className="text-slate-600 dark:text-slate-300 font-semibold">Cancel</Text>
                   </Pressable>
                   <Pressable
                     onPress={handleSave}

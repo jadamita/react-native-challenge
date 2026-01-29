@@ -1,10 +1,11 @@
 import { create } from "zustand";
-import type { PriceData, ChartDataPoint, ChartTimeframe, ApiError } from "@/lib/types";
-import { fetchPrices, fetchChartData } from "@/lib/api/coingecko";
+import type { PriceData, ChartDataPoint, VolumeDataPoint, ChartTimeframe, ApiError } from "@/lib/types";
+import { fetchPrices, fetchChartDataWithVolume } from "@/lib/api/coingecko";
 import { PRICE_POLL_INTERVAL, CHART_CACHE_DURATION } from "@/lib/constants/cryptos";
 
 interface ChartCache {
-  data: ChartDataPoint[];
+  prices: ChartDataPoint[];
+  volumes: VolumeDataPoint[];
   timeframe: ChartTimeframe;
   fetchedAt: number;
 }
@@ -32,7 +33,11 @@ interface PriceStore {
 
   // Actions
   fetchAllPrices: () => Promise<void>;
-  getChartData: (cryptoId: string, timeframe: ChartTimeframe) => Promise<{ data: ChartDataPoint[]; error: ApiError | null }>;
+  getChartData: (cryptoId: string, timeframe: ChartTimeframe) => Promise<{
+    prices: ChartDataPoint[];
+    volumes: VolumeDataPoint[];
+    error: ApiError | null
+  }>;
   refreshPrices: () => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
@@ -121,7 +126,7 @@ export const usePriceStore = create<PriceStore>((set, get) => ({
       cached.timeframe === timeframe &&
       Date.now() - cached.fetchedAt < CHART_CACHE_DURATION
     ) {
-      return { data: cached.data, error: null };
+      return { prices: cached.prices, volumes: cached.volumes, error: null };
     }
 
     // Set loading state for this chart
@@ -132,15 +137,16 @@ export const usePriceStore = create<PriceStore>((set, get) => ({
       },
     });
 
-    // Fetch fresh data
-    const result = await fetchChartData(cryptoId, timeframe);
+    // Fetch fresh data with volume
+    const result = await fetchChartDataWithVolume(cryptoId, timeframe);
 
     if (result.success) {
       set((state) => ({
         chartCache: {
           ...state.chartCache,
           [cacheKey]: {
-            data: result.data,
+            prices: result.data.prices,
+            volumes: result.data.volumes,
             timeframe,
             fetchedAt: Date.now(),
           },
@@ -150,7 +156,7 @@ export const usePriceStore = create<PriceStore>((set, get) => ({
           [cacheKey]: { isLoading: false, error: null },
         },
       }));
-      return { data: result.data, error: null };
+      return { prices: result.data.prices, volumes: result.data.volumes, error: null };
     }
 
     // Update loading state with error
@@ -161,8 +167,12 @@ export const usePriceStore = create<PriceStore>((set, get) => ({
       },
     }));
 
-    // Return cached data if available, otherwise empty array with error
-    return { data: cached?.data ?? [], error: result.error };
+    // Return cached data if available, otherwise empty arrays with error
+    return {
+      prices: cached?.prices ?? [],
+      volumes: cached?.volumes ?? [],
+      error: result.error
+    };
   },
 
   // Start automatic polling

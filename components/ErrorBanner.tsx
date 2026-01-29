@@ -118,7 +118,7 @@ interface LoadingSkeletonProps {
 export function LoadingSkeleton({ width = "100%", height = 16 }: LoadingSkeletonProps) {
   return (
     <View
-      className="bg-slate-700 rounded animate-pulse"
+      className="bg-slate-200 dark:bg-slate-700 rounded animate-pulse"
       style={{ width, height }}
     />
   );

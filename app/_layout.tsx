@@ -2,6 +2,7 @@ import { DrawerContent } from "@/components/DrawerContent";
 import "@/global.css";
 import { useAlertStore, useUnviewedAlertCount } from "@/lib/stores/alertStore";
 import { usePriceStore } from "@/lib/stores/priceStore";
+import { useSettingsStore } from "@/lib/stores/settingsStore";
 import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
 import {
   requestNotificationPermissions,
@@ -11,7 +12,7 @@ import {
 import { Drawer } from "expo-router/drawer";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Appearance } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
@@ -24,7 +25,7 @@ function OfflineBanner() {
   return (
     <View className="bg-crypto-red px-4 py-2 flex-row items-center justify-center">
       <Text className="text-white text-sm font-medium">
-        📡 No connection - prices may be outdated
+        No connection - prices may be outdated
       </Text>
     </View>
   );
@@ -52,13 +53,30 @@ function HeaderAlertBadge() {
   );
 }
 
+// Theme synchronizer component
+function ThemeSync() {
+  const isDarkMode = useSettingsStore((state) => state.isDarkMode);
+
+  useEffect(() => {
+    Appearance.setColorScheme(isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
+
+  return null;
+}
+
 export default function RootLayout() {
   const router = useRouter();
   const startPolling = usePriceStore((state) => state.startPolling);
   const stopPolling = usePriceStore((state) => state.stopPolling);
   const prices = usePriceStore((state) => state.prices);
   const evaluateAlerts = useAlertStore((state) => state.evaluateAlerts);
+  const isDarkMode = useSettingsStore((state) => state.isDarkMode);
   const notificationResponseRef = useRef<ReturnType<typeof addNotificationResponseListener> | null>(null);
+
+  // Set initial color scheme
+  useEffect(() => {
+    Appearance.setColorScheme(isDarkMode ? "dark" : "light");
+  }, []);
 
   // Request notification permissions on mount
   useEffect(() => {
@@ -97,21 +115,27 @@ export default function RootLayout() {
     }
   }, [prices, evaluateAlerts]);
 
+  // Dynamic header colors based on theme
+  const headerBgColor = isDarkMode ? "#0f172a" : "#f8fafc";
+  const headerTintColor = isDarkMode ? "#fff" : "#0f172a";
+  const drawerBgColor = isDarkMode ? "#0f172a" : "#f8fafc";
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeSync />
       <OfflineBanner />
       <Drawer
         drawerContent={(props) => <DrawerContent {...props} />}
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#0f172a",
+            backgroundColor: headerBgColor,
           },
-          headerTintColor: "#fff",
+          headerTintColor: headerTintColor,
           headerTitleStyle: {
             fontWeight: "600",
           },
           drawerStyle: {
-            backgroundColor: "#0f172a",
+            backgroundColor: drawerBgColor,
             width: 300,
           },
           headerRight: () => <HeaderAlertBadge />,
@@ -136,6 +160,14 @@ export default function RootLayout() {
           options={{
             drawerItemStyle: { display: "none" },
             title: "Alerts",
+            headerRight: () => null,
+          }}
+        />
+        <Drawer.Screen
+          name="settings"
+          options={{
+            drawerItemStyle: { display: "none" },
+            title: "Settings",
             headerRight: () => null,
           }}
         />
